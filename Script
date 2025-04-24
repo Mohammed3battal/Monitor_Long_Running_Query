@@ -1,0 +1,24 @@
+SELECT 
+    r.session_id,
+    DB_NAME(r.database_id) AS DatabaseName,
+    r.command,
+    r.status,
+    r.wait_type,                                           
+    r.percent_complete,
+    DATEADD(MILLISECOND, r.estimated_completion_time, GETDATE()) AS Estimated_Completion,
+    r.cpu_time,
+    r.total_elapsed_time / 1000.0 AS ElapsedSeconds,
+    r.reads,
+    r.writes,
+    r.logical_reads,
+    r.blocking_session_id,
+    t.text AS QueryText
+FROM 
+    sys.dm_exec_requests r
+CROSS APPLY 
+    sys.dm_exec_sql_text(r.sql_handle) t
+WHERE 
+    DB_NAME(r.database_id) NOT IN ('master', 'msdb', 'tempdb', 'model')
+   
+ORDER BY 
+    r.total_elapsed_time DESC;
